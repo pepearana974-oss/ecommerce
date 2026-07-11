@@ -29,4 +29,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    /*
+ * Relación uno a muchos:
+ * un usuario puede tener varios carritos.
+ */
+public function carts()
+{
+    return $this->hasMany(Cart::class, 'user_id');
+}
+/*
+ * Un usuario puede tener muchas órdenes.
+ */
+public function orders()
+{
+    return $this->hasMany(Order::class, 'user_id');
+}
 }
