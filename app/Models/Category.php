@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
+
     /**
      * Nombre personalizado de la tabla.
      */
@@ -23,6 +25,22 @@ class Category extends Model
         'name',
         'slug',
     ];
+
+    /**
+     * Genera automáticamente el slug cuando está vacío.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Category $category): void {
+            if (blank($category->slug) && filled($category->name)) {
+                /*
+                 * El mutator slug() convertirá el nombre:
+                 * "Ropa de Verano" → "ropa-de-verano"
+                 */
+                $category->slug = $category->name;
+            }
+        });
+    }
 
     /**
      * Accessor y mutator para el nombre.
@@ -39,11 +57,10 @@ class Category extends Model
     }
 
     /**
-     * Mutator para el slug.
+     * Convierte automáticamente el slug al formato correcto.
      *
      * Ejemplo:
-     * "Equipos de Computación" se guarda como
-     * "equipos-de-computacion".
+     * "Equipos de Computación" → "equipos-de-computacion"
      */
     protected function slug(): Attribute
     {
