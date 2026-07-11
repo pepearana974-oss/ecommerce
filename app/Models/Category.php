@@ -6,20 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
+    protected $table = 'table_categories';
+
     protected $fillable = [
         'name',
-        'slug,'
+        'slug',
     ];
-    /* Hacer comentarios atajo: Alt + Shif + A */
-    /* Relacion de una tabla a otra
-       Relacion de una tabla categories a la category_product
-       */
 
-       public function products (){
-        return $this->belongsToMany(Product::class, 'category_product', 'id', 'category_id');
-       }
-       /* Simulacion si la tabla categories tuviera relacion uno a mucho con products */
-       public function productsSimulacion (){
-        return $this->hasMany(Product::class);
-       }
+    /*
+     * Relación muchos a muchos:
+     * una categoría puede tener muchos productos.
+     */
+    public function products()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'table_category_product',
+            'category_id',
+            'product_id'
+        )->withTimestamps();
+    }
 }
