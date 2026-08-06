@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Nombre personalizado de la tabla.
@@ -45,7 +46,7 @@ class Product extends Model
 
     /**
      * Atributos calculados que aparecerán al convertir
-     * el producto a arreglo o JSON.
+     * el producto a un arreglo o JSON.
      */
     protected $appends = [
         'price_formatted',
@@ -58,14 +59,20 @@ class Product extends Model
     {
         static::saving(function (Product $product): void {
             if (blank($product->slug) && filled($product->name)) {
+                /*
+                 * El mutator slug() transforma el nombre
+                 * al formato utilizado en las direcciones web.
+                 */
                 $product->slug = $product->name;
             }
         });
     }
 
     /**
+     * Accessor y mutator para el nombre.
+     *
      * Al guardar elimina espacios.
-     * Al consultar coloca iniciales mayúsculas.
+     * Al consultar coloca las iniciales en mayúsculas.
      */
     protected function name(): Attribute
     {
@@ -76,15 +83,16 @@ class Product extends Model
     }
 
     /**
-     * Normaliza el slug.
+     * Convierte el slug al formato correcto.
      *
-     * "Laptop Gamer HP" se guarda como:
-     * "laptop-gamer-hp"
+     * También permite recibir null cuando el usuario deja
+     * el campo vacío. En ese caso, booted() genera el slug.
      */
     protected function slug(): Attribute
     {
         return Attribute::make(
-            set: fn (string $value): string => Str::slug($value),
+            set: fn (?string $value): ?string =>
+                filled($value) ? Str::slug($value) : null,
         );
     }
 
@@ -109,7 +117,8 @@ class Product extends Model
     }
 
     /**
-     * Un producto puede pertenecer a muchas categorías.
+     * Relación muchos a muchos:
+     * un producto puede pertenecer a una o varias categorías.
      */
     public function categories(): BelongsToMany
     {
@@ -144,7 +153,10 @@ class Product extends Model
     }
 
     /**
-     * Permite consultar solamente productos activos.
+     * Scope para consultar únicamente productos activos.
+     *
+     * Ejemplo:
+     * Product::active()->get();
      */
     public function scopeActive(Builder $query): Builder
     {

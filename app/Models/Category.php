@@ -34,8 +34,8 @@ class Category extends Model
         static::saving(function (Category $category): void {
             if (blank($category->slug) && filled($category->name)) {
                 /*
-                 * El mutator slug() convertirá el nombre:
-                 * "Ropa de Verano" → "ropa-de-verano"
+                 * El mutator slug() convierte el nombre:
+                 * "Ropa de Verano" en "ropa-de-verano".
                  */
                 $category->slug = $category->name;
             }
@@ -45,27 +45,28 @@ class Category extends Model
     /**
      * Accessor y mutator para el nombre.
      *
-     * Al guardar, elimina espacios al principio y al final.
-     * Al consultar, coloca las palabras con inicial mayúscula.
+     * Al guardar elimina espacios al principio y al final.
+     * Al consultar coloca las iniciales en mayúscula.
      */
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => ucwords($value),
-            set: fn (string $value) => trim($value),
+            get: fn (string $value): string => ucwords($value),
+            set: fn (string $value): string => trim($value),
         );
     }
 
     /**
-     * Convierte automáticamente el slug al formato correcto.
+     * Convierte el slug al formato correcto.
      *
-     * Ejemplo:
-     * "Equipos de Computación" → "equipos-de-computacion"
+     * También permite recibir null cuando el usuario deja
+     * el campo vacío. En ese caso, booted() genera el slug.
      */
     protected function slug(): Attribute
     {
         return Attribute::make(
-            set: fn (string $value) => Str::slug($value),
+            set: fn (?string $value): ?string =>
+                filled($value) ? Str::slug($value) : null,
         );
     }
 
