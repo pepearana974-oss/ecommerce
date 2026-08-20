@@ -1,10 +1,19 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| LENGUAJE: PHP con Laravel
+|--------------------------------------------------------------------------
+| Este archivo registra las direcciones disponibles en el sistema:
+| catálogo, administración, carrito, checkout y Stripe.
+*/
+
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -71,7 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 |--------------------------------------------------------------------------
 | Carrito de compras
 |--------------------------------------------------------------------------
-| El carrito se guarda temporalmente en session.
+| El carrito se guarda temporalmente en la sesión de Laravel.
 */
 
 /*
@@ -124,29 +133,48 @@ Route::delete(
 
 /*
 |--------------------------------------------------------------------------
-| Checkout simulado
+| Resumen del checkout
 |--------------------------------------------------------------------------
+| Muestra los productos y el total antes de enviarlos a Stripe.
 */
-
-/*
- * Muestra el resumen y la pasarela de pagos simulada.
- */
 Route::get(
     '/checkout',
     [CartController::class, 'checkout']
 )->name('checkout.index');
 
 /*
- * Confirma la compra, descuenta el stock y vacía el carrito.
+|--------------------------------------------------------------------------
+| Integración real con Stripe
+|--------------------------------------------------------------------------
+*/
+
+/*
+ * Crea una sesión de pago y redirige al checkout oficial de Stripe.
  */
 Route::post(
-    '/checkout/confirmar',
-    [CartController::class, 'confirm']
-)->name('checkout.confirm');
+    '/stripe/pagar',
+    [StripeController::class, 'checkout']
+)->name('stripe.checkout');
+
+/*
+ * Recibe al usuario después de un pago exitoso.
+ */
+Route::get(
+    '/stripe/exito',
+    [StripeController::class, 'success']
+)->name('stripe.success');
+
+/*
+ * Recibe al usuario si cancela el pago.
+ */
+Route::get(
+    '/stripe/cancelado',
+    [StripeController::class, 'cancel']
+)->name('stripe.cancel');
 
 /*
 |--------------------------------------------------------------------------
-| Rutas de autenticación de Breeze
+| Rutas de autenticación de Laravel Breeze
 |--------------------------------------------------------------------------
 */
 require __DIR__.'/auth.php';

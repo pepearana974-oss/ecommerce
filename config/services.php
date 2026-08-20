@@ -34,5 +34,15 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    /*
+    |--------------------------------------------------------------------------
+    | Configuración de Stripe
+    |--------------------------------------------------------------------------
+    | Obtiene las claves del archivo .env sin escribirlas directamente
+    | dentro del código del proyecto.
+    */
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
 ];
